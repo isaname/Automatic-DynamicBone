@@ -249,17 +249,25 @@ namespace ADBRuntime.Internal
             internal bool isOptimize;
             public void Execute(int index)
             {
+                // 提前保存字段，减少全局内存访问次数
+                float3 myAddForcePower = addForcePower;
+                float myOneDivideIteration = oneDivideIteration;
+                float myDeltaTime = deltaTime;
+                bool myIsOptimize = isOptimize; 
+                bool myIsCollision = isCollision;
+                int myColliderCount = colliderCount;
+                int myPReadColliders = pReadColliders;
                 PointRead* pReadPoint = pReadPoints + index;
                 PointReadWrite* pReadWritePoint = pReadWritePoints + index;
                 if (pReadPoint->fixedIndex != index)
                 {
 
-                    EvaluatePosition(index, pReadPoint, pReadWritePoint, addForcePower, oneDivideIteration, deltaTime, isOptimize);
-                    if (isCollision)
+                    EvaluatePosition(index, pReadPoint, pReadWritePoint, myAddForcePower, myOneDivideIteration, myDeltaTime, myIsOptimize);
+                    if (myIsCollision)
                     {
-                        for (int i = 0; i < colliderCount; ++i)
+                        for (int i = 0; i < myColliderCount; ++i)
                         {
-                            ColliderRead* pReadCollider = pReadColliders + i;
+                            ColliderRead* pReadCollider = myPReadColliders + i;
 
                             if (pReadCollider->isOpen && (pReadPoint->colliderMask & pReadCollider->colliderChoice) != 0)
                             {
@@ -271,13 +279,13 @@ namespace ADBRuntime.Internal
                                  //OYM:但是这里其实有个bug，如果你想要将粒子包含在碰撞体内，而粒子却恰好在AABB外，就会出现不判断的情况。
                                  //OYM:如果你发现这种情况一直存在，可以尝试将AABB扩大一倍。
                                     ColliderReadWrite* pReadWriteCollider = pReadWriteColliders + i;
-                                    CollideProcess(pReadPoint, pReadWritePoint, pReadWriteCollider, pointRadius, oneDivideIteration, isColliderInsideMode);
+                                    CollideProcess(pReadPoint, pReadWritePoint, pReadWriteCollider, pointRadius, myOneDivideIteration, isColliderInsideMode);
                                 }
                             }
                         }
                     }
                 }
-                pReadWritePoint->position += oneDivideIteration * pReadWritePoint->deltaPosition * deltaTime * 60;//OYM：这里我想了很久,应该是这样,如果是迭代n次的话,那么deltaposition将会被加上n次,正规应该是只加一次
+                pReadWritePoint->position += myOneDivideIteration * pReadWritePoint->deltaPosition * deltaTime * 60;//OYM：这里我想了很久,应该是这样,如果是迭代n次的话,那么deltaposition将会被加上n次,正规应该是只加一次
 
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
