@@ -549,18 +549,14 @@ namespace ADBRuntime.Internal
             static void DistributionPower(float3 pushout, PointRead* pReadPoint, PointReadWrite* pReadWritePoint, CollideFunc collideFunc, float oneDivideIteration)
             {
                 float sqrPushout = math.lengthsq(pushout);
-                if (collideFunc == CollideFunc.InsideNoLimit || collideFunc == CollideFunc.OutsideNoLimit)
-                {
-                    pReadWritePoint->deltaPosition += 0.01f * oneDivideIteration * pReadPoint->addForceScale * pushout;
-                }
-                else
-                {
+                int flag = (collideFunc==collideFunc.InsideNoLimit|| collideFunc == CollideFunc.OutsideNoLimit)?1:0;
+                pReadWritePoint->deltaPosition +=(0.01f * oneDivideIteration * pReadPoint->addForceScale * pushout)*flag;
+            
 
-                    pReadWritePoint->deltaPosition += pushout;
-                    pReadWritePoint->deltaPosition *= (1 - pReadPoint->friction);
-                    pReadWritePoint->position += pushout;
+                pReadWritePoint->deltaPosition += pushout*(1-flag);
+                pReadWritePoint->deltaPosition *= (1 - pReadPoint->friction*(1-flag));
+                pReadWritePoint->position += pushout*(1-flag);
 
-                }
 
 
             }
